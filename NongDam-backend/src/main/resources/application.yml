@@ -1,0 +1,28 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+    open-in-view: false
+
+jwt:
+  secret: ${JWT_SECRET}
+token:
+  expire:
+    time:
+      access: ${TOKEN_EXPIRE_TIME_ACCESS}
+      refresh: ${TOKEN_EXPIRE_TIME_REFRESH}
+
+oauth:
+  kakao:
+    rest-api-key: ${OAUTH_KAKAO_REST_API_KEY}
+    redirect-url: ${OAUTH_KAKAO_REDIRECT_URL}
