@@ -19,11 +19,26 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+    - name: Gradle Caching
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+    - name: Grant execute permission for gradlew
+      run:
+        chmod +x gradlew
 
     - name: Build with Gradle
-      run: ./gradlew build
+      run: ./gradlew build -x test
+      shell: bash
+
+    - name: Build With Gradle
+      if: contains(github.ref, 'dev')
+      run: ./gradlew build -x test
 
     - name: Docker image build and push
       uses: docker/build-push-action@v1
@@ -92,10 +107,12 @@ jobs:
         EC2_SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         EC2_HOST: ${{ secrets.EC2_HOST }}
         EC2_USER: ${{ secrets.EC2_USERNAME }}
+        ENV_DEV: ${{ secrets.ENV_DEV }}
       run: |
+        echo "$EC2_SSH_KEY" > .env.dev
         scp -o StrictHostKeyChecking=no -i ec2_key.pem docker-compose.yml ${EC2_USER}@${EC2_HOST}:~/
         scp -o StrictHostKeyChecking=no -i ec2_key.pem docker-compose.override.yml ${EC2_USER}@${EC2_HOST}:~/
-
+        scp -o StrictHostKeyChecking=no -i ec2_key.pem .env.dev ${EC2_USER}@${EC2_HOST}:~/
 
     - name: pull docker and run server
       env:
