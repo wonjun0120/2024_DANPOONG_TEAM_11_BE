@@ -10,6 +10,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./NongDam-backend
 
     steps:
     - uses: actions/checkout@v4
@@ -28,31 +31,32 @@ jobs:
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
         restore-keys: |
           ${{ runner.os }}-gradle-
-          
     - name: Grant execute permission for gradlew
       run:
-        chmod +x ./NongDam-backend/gradlew
+        chmod +x gradlew
 
     - name: Build with Gradle
-      run: ./NongDam-backend/gradlew build -x test
+      run: ./gradlew build -x test
       shell: bash
 
     - name: Build With Gradle
       if: contains(github.ref, 'dev')
-      run: ./NongDam-backend/gradlew build -x test
-    
+      run: ./gradlew build -x test
+
     - name: Docker image build and push
       uses: docker/build-push-action@v1
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-        file: ./NongDam-backend/Dockerfile
         repository: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}
         tags: latest
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./NongDam-backend
     
     steps:
     - name: Checkout dev
@@ -112,9 +116,9 @@ jobs:
         ENV_DEV: ${{ secrets.ENV_DEV }}
       run: |
         echo "$EC2_SSH_KEY" > .env.dev
-        scp -o StrictHostKeyChecking=no -i ec2_key.pem ./NongDam-backend/docker-compose.yml ${EC2_USER}@${EC2_HOST}:~/
-        scp -o StrictHostKeyChecking=no -i ec2_key.pem ./NongDam-backend/docker-compose.override.yml ${EC2_USER}@${EC2_HOST}:~/
-        scp -o StrictHostKeyChecking=no -i ec2_key.pem ./NongDam-backend/.env.dev ${EC2_USER}@${EC2_HOST}:~/
+        scp -o StrictHostKeyChecking=no -i ec2_key.pem docker-compose.yml ${EC2_USER}@${EC2_HOST}:~/
+        scp -o StrictHostKeyChecking=no -i ec2_key.pem docker-compose.override.yml ${EC2_USER}@${EC2_HOST}:~/
+        scp -o StrictHostKeyChecking=no -i ec2_key.pem .env.dev ${EC2_USER}@${EC2_HOST}:~/
 
     - name: pull docker and run server
       env:
