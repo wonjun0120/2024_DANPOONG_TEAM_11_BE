@@ -53,6 +53,7 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         context: .
+        file: ./Dockerfile
         tags: ${{secrets.DOCKER_USERNAME}}/${{ secrets.DOCKER_REPO }}
     
     # - name: Docker build & push
